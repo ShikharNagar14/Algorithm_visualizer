@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Searching Visualizer | Shikhar Nagar</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header>
+    <h1>Searching Algorithm Visualizer</h1>
+    <p>Visualize how searching algorithms work</p>
+  </header>
+
+  <div class="controls">
+    <a href="index.html" class="btn-primary" style="text-decoration: white;  display: inline-block; border-radius: 5px; padding: 5px;">🏠 Home</a>
+    <button class="btn-primary" onclick="generateArray()">New Array</button>
+    <input type="number" id="searchInput" placeholder="Enter number to search" />
+    <button onclick="linearSearch()">Linear Search</button>
+    <button onclick="binarySearch()">Binary Search</button>
+    <button class="btn-stop" onclick="stopSearching()" id="stopBtn" disabled>Stop Search</button>
+  </div>
+
+  <div class="bar-container" id="container"></div>
+
+  <footer>
+    <p>Created with ❤️ by <span class="creator">Shikhar Nagar</span></p>
+    <p>An interactive visualization tool for searching algorithms</p>
+  </footer>
+
+  <script>
+    let array = [];
+    let isSearching = false;
+    let shouldStop = false;
+    const animationSpeed = 300;
+
+    function generateArray() {
+      if (isSearching) return;
+      shouldStop = false;
+      const container = document.getElementById("container");
+      container.innerHTML = "";
+      array = [];
+
+      const size = Math.min(40, Math.floor(window.innerWidth / 20));
+      for (let i = 0; i < size; i++) {
+        const val = Math.floor(Math.random() * 180) + 20;
+        array.push(val);
+
+        const bar = document.createElement("div");
+        bar.className = "bar";
+        bar.style.height = `${val}px`;
+        bar.setAttribute("data-value", val);
+        container.appendChild(bar);
+      }
+
+      document.getElementById("stopBtn").disabled = true;
+    }
+
+    function stopSearching() {
+      shouldStop = true;
+      document.getElementById("stopBtn").disabled = true;
+    }
+
+    function updateBarsHighlight(indexes = [], found = -1) {
+      const bars = document.querySelectorAll(".bar");
+      bars.forEach((bar, i) => {
+        bar.className = "bar";
+        if (indexes.includes(i)) bar.classList.add("comparing");
+        if (i === found) bar.classList.add("sorted");
+      });
+    }
+
+    async function linearSearch() {
+      if (isSearching) return;
+      shouldStop = false;
+      isSearching = true;
+      document.getElementById("stopBtn").disabled = false;
+
+      const target = parseInt(document.getElementById("searchInput").value);
+      if (isNaN(target)) {
+        alert("Please enter a number to search.");
+        isSearching = false;
+        return;
+      }
+
+      try {
+        for (let i = 0; i < array.length; i++) {
+          if (shouldStop) throw new Error("Search Stopped");
+          updateBarsHighlight([i]);
+          await new Promise((res) => setTimeout(res, animationSpeed));
+          if (array[i] === target) {
+            updateBarsHighlight([], i);
+            return;
+          }
+        }
+      } catch (e) {
+        console.log("Search interrupted.");
+      } finally {
+        isSearching = false;
+        document.getElementById("stopBtn").disabled = true;
+      }
+    }
+
+    async function binarySearch() {
+      if (isSearching) return;
+      shouldStop = false;
+      isSearching = true;
+      document.getElementById("stopBtn").disabled = false;
+
+      array.sort((a, b) => a - b);
+      const bars = document.querySelectorAll(".bar");
+      array.forEach((val, i) => {
+        bars[i].style.height = `${val}px`;
+        bars[i].setAttribute("data-value", val);
+      });
+
+      const target = parseInt(document.getElementById("searchInput").value);
+      if (isNaN(target)) {
+        alert("Please enter a number to search.");
+        isSearching = false;
+        return;
+      }
+
+      let low = 0, high = array.length - 1;
+      try {
+        while (low <= high) {
+          if (shouldStop) throw new Error("Search Stopped");
+
+          let mid = Math.floor((low + high) / 2);
+          updateBarsHighlight([low, mid, high]);
+          await new Promise((res) => setTimeout(res, animationSpeed));
+
+          if (array[mid] === target) {
+            updateBarsHighlight([], mid);
+            return;
+          } else if (array[mid] < target) {
+            low = mid + 1;
+          } else {
+            high = mid - 1;
+          }
+        }
+      } catch (e) {
+        console.log("Search interrupted.");
+      } finally {
+        isSearching = false;
+        document.getElementById("stopBtn").disabled = true;
+      }
+    }
+
+    generateArray();
+  </script>
+</body>
+</html>
